@@ -2,6 +2,7 @@ from fastapi import (
     FastAPI,
     Depends,
 )  # Import FastAPI for creating the app and Depends for dependency injection
+from fastapi.middleware.cors import CORSMiddleware
 from models import Product  # Import the Pydantic Product model for data validation
 from database import (
     SessionLocal,
@@ -11,6 +12,10 @@ import database_models  # Import the database models to interact with the databa
 from sqlalchemy.orm import Session  # Import Session for database session management
 
 app = FastAPI()  # Create an instance of the FastAPI application
+
+app.add_middleware(
+    CORSMiddleware, allow_origins=["http://localhost:3000"], allow_methods=["*"]
+)
 
 # Create all database tables defined in database_models if they don't exist
 database_models.Base.metadata.create_all(bind=engine)
@@ -80,7 +85,7 @@ def get_all_products(
     return db_products  # Return the list of products
 
 
-@app.get("/product/{id}")  # Define a GET endpoint to retrieve a product by its ID
+@app.get("/products/{id}")  # Define a GET endpoint to retrieve a product by its ID
 def get_product_by_id(
     id: int, db: Session = Depends(get_db)
 ):  # Dependency injection to get the database session
@@ -99,7 +104,7 @@ def get_product_by_id(
     )
 
 
-@app.post("/product")  # Define a POST endpoint to add a new product
+@app.post("/products")  # Define a POST endpoint to add a new product
 def add_product(
     product: Product, db: Session = Depends(get_db)
 ):  # db: Session = Depends(get_db) means dependency injection
@@ -108,7 +113,7 @@ def add_product(
     return product
 
 
-@app.delete("/product")  # Define a DELETE endpoint to remove a product
+@app.delete("/products")  # Define a DELETE endpoint to remove a product
 def del_product(id: int, db: Session = Depends(get_db)):
     db_product = (
         db.query(database_models.Product)
@@ -124,7 +129,7 @@ def del_product(id: int, db: Session = Depends(get_db)):
         return "Product Not Found!"
 
 
-@app.put("/product")  # Define a PUT endpoint to update an existing product
+@app.put("/products/{id}")  # Define a PUT endpoint to update an existing product
 def update_product(
     id: int, product: Product, db: Session = Depends(get_db)
 ):  # Product ID and updated data are received in the request
